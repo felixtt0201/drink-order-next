@@ -1,5 +1,7 @@
 "use client";
+
 import { useState, useEffect } from "react";
+
 export default function MenuPage() {
   const [drinks, setDrinks] = useState([]);
   const [toppings, setToppings] = useState([]);
@@ -31,10 +33,22 @@ export default function MenuPage() {
     setSelectedOptions(updatedOptions);
   };
 
-  // 處理數量變更
-  const handleQuantityChange = (index, newQuantity) => {
+  // 處理數量增減
+  const handleQuantityChange = (index, action) => {
     const updatedOptions = [...selectedOptions];
-    updatedOptions[index].quantity = newQuantity;
+    if (action === "increment") {
+      updatedOptions[index].quantity += 1;
+    } else if (action === "decrement" && updatedOptions[index].quantity > 1) {
+      updatedOptions[index].quantity -= 1;
+    }
+    setSelectedOptions(updatedOptions);
+  };
+
+  // 處理手動輸入數量
+  const handleManualQuantityInput = (index, value) => {
+    const numericValue = parseInt(value, 10); // 只保留數字
+    const updatedOptions = [...selectedOptions];
+    updatedOptions[index].quantity = numericValue > 0 ? numericValue : 1; // 最小為1
     setSelectedOptions(updatedOptions);
   };
 
@@ -44,25 +58,14 @@ export default function MenuPage() {
     const toppingDetails = toppings.find((t) => t.name === topping);
     const toppingPrice = toppingDetails ? toppingDetails.price : 0;
 
-    // const orderItem = {
-    //   name: item.name,
-    //   price: item.price,
-    //   quantity,
-    //   topping,
-    //   toppingPrice,
-    //   totalPrice: (item.price + toppingPrice) * quantity,
-    //   timestamp: new Date().toISOString(),
-    // };
-
     const orderItem = {
       drink_id: item.id,
       topping_id: toppingDetails.id,
       total_price: (item.price + toppingPrice) * quantity,
+      price: item.price,
       quantity,
-      timestamp: new Date().toISOString(),
+      created_at: new Date().toISOString(),
     };
-
-    console.log("orderItem: ", orderItem);
 
     await fetch("/api/orders", {
       method: "POST",
@@ -74,7 +77,7 @@ export default function MenuPage() {
   };
 
   return (
-    <div className="p-4 max-w-screen-xl mx-auto">
+    <div className="p-4 max-w-screen-lg mx-auto">
       <h1 className="text-2xl font-bold mb-6 text-center">飲料菜單</h1>
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {drinks.map((item, index) => (
@@ -104,17 +107,37 @@ export default function MenuPage() {
             </div>
 
             {/* 數量選擇 */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium">數量：</label>
-              <input
-                type="number"
-                min="1"
-                className="w-full border rounded p-2"
-                value={selectedOptions[index]?.quantity || 1}
-                onChange={(e) =>
-                  handleQuantityChange(index, parseInt(e.target.value))
-                }
-              />
+            <div className="mb-4 items-center">
+              <p className="text-sm font-medium mr-4">數量：</p>
+              <div className="w-full flex">
+                <button
+                  className="p-2 border rounded-l bg-gray-200 hover:bg-gray-300 flex-1"
+                  onClick={() => handleQuantityChange(index, "decrement")}
+                  type="button"
+                >
+                  -
+                </button>
+                <input
+                  type="text"
+                  className="text-center border-y p-2"
+                  value={selectedOptions[index]?.quantity || 1}
+                  onChange={(e) =>
+                    handleManualQuantityInput(index, e.target.value)
+                  }
+                  onBlur={(e) => {
+                    if (!e.target.value || parseInt(e.target.value, 10) <= 0) {
+                      handleManualQuantityInput(index, "1");
+                    }
+                  }}
+                />
+                <button
+                  className="p-2 border rounded-r bg-gray-200 hover:bg-gray-300 flex-1"
+                  onClick={() => handleQuantityChange(index, "increment")}
+                  type="button"
+                >
+                  +
+                </button>
+              </div>
             </div>
 
             {/* 加入訂單按鈕 */}
