@@ -120,11 +120,11 @@ export default function StatisticsPage() {
             filteredOrders.map((order, index) => (
               <tr key={index} className="hover:bg-gray-50">
                 <td className="border border-gray-300 px-4 py-2">
-                  {order.drink.name} ({order.drink.price} 元)
+                  {order.drink?.name} ({order.drink?.price} 元)
                 </td>
                 <td className="border border-gray-300 px-4 py-2">
                   {order.topping !== "無配料"
-                    ? `${order.topping.name} (+${order.topping.price}元)`
+                    ? `${order.topping?.name} (+${order.topping?.price}元)`
                     : "無配料"}
                 </td>
                 <td className="border border-gray-300 px-4 py-2">
