@@ -1,7 +1,5 @@
 "use client";
-
 import { useState, useEffect } from "react";
-// import { createClient } from "../../supabase/server";
 export default function MenuPage() {
   const [drinks, setDrinks] = useState([]);
   const [toppings, setToppings] = useState([]);
