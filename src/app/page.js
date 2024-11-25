@@ -1,101 +1,134 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState, useEffect } from "react";
+// import { createClient } from "../../supabase/server";
+export default function MenuPage() {
+  const [drinks, setDrinks] = useState([]);
+  const [toppings, setToppings] = useState([]);
+  const [selectedOptions, setSelectedOptions] = useState([]);
+
+  // 初始化獲取飲料和配料數據
+  useEffect(() => {
+    async function fetchData() {
+      const drinksResponse = await fetch("/api/drinks");
+      const drinksData = await drinksResponse.json();
+      setDrinks(drinksData);
+
+      const toppingsResponse = await fetch("/api/toppings");
+      const toppingsData = await toppingsResponse.json();
+      setToppings(toppingsData);
+
+      // 初始化每個飲料的選擇
+      setSelectedOptions(
+        drinksData.map(() => ({ quantity: 1, topping: "無配料" }))
+      );
+    }
+    fetchData();
+  }, []);
+
+  // 處理配料變更
+  const handleToppingChange = (index, newTopping) => {
+    const updatedOptions = [...selectedOptions];
+    updatedOptions[index].topping = newTopping;
+    setSelectedOptions(updatedOptions);
+  };
+
+  // 處理數量變更
+  const handleQuantityChange = (index, newQuantity) => {
+    const updatedOptions = [...selectedOptions];
+    updatedOptions[index].quantity = newQuantity;
+    setSelectedOptions(updatedOptions);
+  };
+
+  // 添加訂單到 API
+  const handleAddToOrder = async (item, index) => {
+    const { quantity, topping } = selectedOptions[index];
+    const toppingDetails = toppings.find((t) => t.name === topping);
+    const toppingPrice = toppingDetails ? toppingDetails.price : 0;
+
+    // const orderItem = {
+    //   name: item.name,
+    //   price: item.price,
+    //   quantity,
+    //   topping,
+    //   toppingPrice,
+    //   totalPrice: (item.price + toppingPrice) * quantity,
+    //   timestamp: new Date().toISOString(),
+    // };
+
+    const orderItem = {
+      drink_id: item.id,
+      topping_id: toppingDetails.id,
+      total_price: (item.price + toppingPrice) * quantity,
+      quantity,
+      timestamp: new Date().toISOString(),
+    };
+
+    console.log("orderItem: ", orderItem);
+
+    await fetch("/api/orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(orderItem),
+    });
+
+    alert(`成功加入訂單：${item.name} x ${quantity}`);
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.js
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div className="p-4 max-w-screen-xl mx-auto">
+      <h1 className="text-2xl font-bold mb-6 text-center">飲料菜單</h1>
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {drinks.map((item, index) => (
+          <div
+            key={index}
+            className="p-6 border rounded-lg shadow-md flex flex-col justify-between"
+          >
+            <div className="mb-4">
+              <h2 className="text-lg font-medium">{item.name}</h2>
+              <p className="text-gray-500">{item.price} 元</p>
+            </div>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+            {/* 配料選擇 */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium">配料：</label>
+              <select
+                className="w-full border rounded p-2"
+                value={selectedOptions[index]?.topping || "無配料"}
+                onChange={(e) => handleToppingChange(index, e.target.value)}
+              >
+                {toppings.map((topping, toppingIndex) => (
+                  <option key={toppingIndex} value={topping.name}>
+                    {topping.name} (+{topping.price} 元)
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* 數量選擇 */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium">數量：</label>
+              <input
+                type="number"
+                min="1"
+                className="w-full border rounded p-2"
+                value={selectedOptions[index]?.quantity || 1}
+                onChange={(e) =>
+                  handleQuantityChange(index, parseInt(e.target.value))
+                }
+              />
+            </div>
+
+            {/* 加入訂單按鈕 */}
+            <button
+              className="w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              onClick={() => handleAddToOrder(item, index)}
+            >
+              加入訂單
+            </button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
