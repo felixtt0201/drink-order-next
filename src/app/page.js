@@ -77,7 +77,7 @@ export default function MenuPage() {
   };
 
   return (
-    <div className="p-4 max-w-screen-lg mx-auto">
+    <div className="max-w-screen-lg mx-auto">
       <h1 className="text-2xl font-bold mb-1 text-center">飲料菜單</h1>
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {drinks.map((item, index) => (
@@ -129,6 +129,7 @@ export default function MenuPage() {
                       handleManualQuantityInput(index, "1");
                     }
                   }}
+                  inputMode="numeric"
                 />
                 <button
                   className="p-2 border rounded-r bg-gray-200 hover:bg-gray-300 flex-1"
