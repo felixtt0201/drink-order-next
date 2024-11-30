@@ -181,6 +181,7 @@ export default function ManagePage() {
             }
             className="w-1/2 p-2 border rounded"
             required
+            inputMode="numeric"
           />
           <button
             type="submit"
@@ -244,6 +245,7 @@ export default function ManagePage() {
               })
             }
             className="w-1/2 p-2 border rounded"
+            inputMode="numeric"
           />
           <button
             type="button"
